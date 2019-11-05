@@ -9,6 +9,7 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
 
 import javax.el.MethodNotFoundException;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -40,17 +41,22 @@ public class PolicyActuator {
         groupObjectMap = new HashMap<>();
         groupMethodMap = new HashMap<>();
         //从容器中获取所有实现类
-        Map<String, PolicyInterface> beans = applicationContext.getBeansOfType(PolicyInterface.class);
+        Map<String, Object> beans = applicationContext.getBeansWithAnnotation(PolicyType.class);
         //循环获取类
-        for (Map.Entry<String, PolicyInterface> entry : beans.entrySet()) {
-            Class<? extends PolicyInterface> thisClass = entry.getValue().getClass();
+        for (Map.Entry<String, Object> entry : beans.entrySet()) {
+            Class thisClass = entry.getValue().getClass();
+            PolicyType classAnnotation = (PolicyType) thisClass.getAnnotation(PolicyType.class);
+            String group = classAnnotation.group();
             //获取当前类中的所有方法
             Method[] methods = thisClass.getDeclaredMethods();
             for (Method method : methods) {
                 //判断方法上是否包含PolicyType注解
                 if (method.isAnnotationPresent(PolicyType.class)) {
                     PolicyType policyType = method.getAnnotation(PolicyType.class);
-                    String group = policyType.group();
+                    String methodGroup = policyType.group();
+                    if (StringUtils.isNotBlank(methodGroup)) {
+                        group = methodGroup;
+                    }
                     Map<String, Object> objectMap = getObjectMap(group, ReadOrWriteType.WRITE);
                     Map<String, Method> methodMap = getMethodMap(group, ReadOrWriteType.WRITE);
                     methodMap.put(policyType.policy(), method);
