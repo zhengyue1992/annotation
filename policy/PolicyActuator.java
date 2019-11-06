@@ -9,7 +9,6 @@ import org.springframework.expression.spel.standard.SpelExpressionParser;
 import org.springframework.stereotype.Component;
 
 import javax.el.MethodNotFoundException;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -139,8 +138,7 @@ public class PolicyActuator {
     public Object getObject(String group, String policy) throws ClassNotFoundException {
         Map<String, Object> objectMap = getObjectMap(group, ReadOrWriteType.READ);
         if (null == objectMap || objectMap.size() <= 0) {
-            throw new ClassNotFoundException("在分组" + group +"里，spring容器中没有找到" + PolicyInterface.class.getName() + "的继承类；"
-                    + "请检查类是否继承了" + PolicyInterface.class.getName() + ",是否添加@Component相关注解");
+            throw new ClassNotFoundException("在分组" + group +"里，spring容器中没有找到" + PolicyType.class.getName() + "注解的类;");
         }
         Object obj = objectMap.get(policy);
         if (obj == null) {
